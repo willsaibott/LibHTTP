@@ -1,0 +1,42 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="http">
+      <UniqueIdentifier>{a5bc5ccd-c596-43b6-bf7b-90c83ea79a88}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="http\server">
+      <UniqueIdentifier>{aaad57b4-5c99-444d-916e-fb1d0b33e0bb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="http\client">
+      <UniqueIdentifier>{200dfe41-48dd-4c6f-a92f-7f76df6a2473}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="helpers">
+      <UniqueIdentifier>{ff86315b-a3c7-49fe-b47e-f6a67a828228}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="http_server.h">
+      <Filter>http\server</Filter>
+    </ClInclude>
+    <ClInclude Include="http_client.h" />
+    <ClInclude Include="path_helper.h">
+      <Filter>helpers</Filter>
+    </ClInclude>
+    <ClInclude Include="mime_type_helper.h">
+      <Filter>helpers</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="http_server.cpp">
+      <Filter>http\server</Filter>
+    </ClCompile>
+    <ClCompile Include="http_client.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+  </ItemGroup>
+</Project>
