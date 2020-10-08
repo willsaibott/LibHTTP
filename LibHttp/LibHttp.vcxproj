@@ -147,10 +147,12 @@
     <ClInclude Include="http_server.h" />
     <ClInclude Include="mime_type_helper.h" />
     <ClInclude Include="path_helper.h" />
+    <ClInclude Include="websocket.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="http_client.cpp" />
     <ClCompile Include="http_server.cpp" />
+    <ClCompile Include="websocket.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

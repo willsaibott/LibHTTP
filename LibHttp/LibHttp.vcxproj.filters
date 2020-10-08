@@ -22,19 +22,29 @@
     <ClInclude Include="http_server.h">
       <Filter>http\server</Filter>
     </ClInclude>
-    <ClInclude Include="http_client.h" />
     <ClInclude Include="path_helper.h">
       <Filter>helpers</Filter>
     </ClInclude>
     <ClInclude Include="mime_type_helper.h">
       <Filter>helpers</Filter>
     </ClInclude>
+    <ClInclude Include="websocket.h">
+      <Filter>http\server</Filter>
+    </ClInclude>
+    <ClInclude Include="http_client.h">
+      <Filter>http\client</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="http_server.cpp">
       <Filter>http\server</Filter>
     </ClCompile>
-    <ClCompile Include="http_client.cpp" />
+    <ClCompile Include="websocket.cpp">
+      <Filter>http\server</Filter>
+    </ClCompile>
+    <ClCompile Include="http_client.cpp">
+      <Filter>http\client</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

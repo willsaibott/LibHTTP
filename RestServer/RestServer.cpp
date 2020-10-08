@@ -3,6 +3,7 @@
 
 #include <LibHttp\http_server.h>
 #include "LibHttpTest\http_custom_router.h"
+#include <LibHttp\websocket.h>
 #include <string>
 #include <thread>
 #include <filesystem>
@@ -72,11 +73,13 @@ int main()
           "QMUk26jPTIVTLfXmmwU0u8vUkpR7LQKkwwIBAg==\n"
           "-----END DH PARAMETERS-----\n";
 
+      const std::string interface_address{ "192.168.7.1" };
       http::https_server<http_custom_router>
-        https_server{ "192.168.7.1", 8045, std::filesystem::current_path() };
+        https_server{ interface_address, 8045, std::filesystem::current_path() };
 
       http::http_server<http_custom_router>
-        http_server { "192.168.7.1", 8080, std::filesystem::current_path() };
+        http_server { interface_address, 8080, std::filesystem::current_path() };
+
 
       https_server.set_ssl_context(http::ssl_dh_context_creator{}(cert, key, dh, "test"));
       std::thread thread1 {
@@ -84,18 +87,43 @@ int main()
           https_server.start(std::thread::hardware_concurrency());
         }
       };
+      std::cout << "HTTPS server running at https://" << interface_address << ":8045..." <<  std::endl;
 
       std::thread thread2 {
         [&http_server]() {
           http_server.start(std::thread::hardware_concurrency());
         }
       };
+      std::cout << "HTTP server running at http://" << interface_address << ":8080..." <<  std::endl;
+
+      http::websocket_server<http::echo_message_handler>
+        websocket_server{ interface_address, 8090, std::filesystem::current_path() };
+      std::thread thread3 {
+        [&websocket_server]() {
+          websocket_server.start(std::thread::hardware_concurrency());
+        }
+      };
+      std::cout << "Websocket server running at ws://" << interface_address << ":8090..." <<  std::endl;
+
+      http::websocket_ssl_server<http::echo_message_handler>
+        websocket_ssl_server{ interface_address, 8095, std::filesystem::current_path() };
+      websocket_ssl_server.set_ssl_context(http::ssl_dh_context_creator{}(cert, key, dh, "test"));
+      std::thread thread4 {
+        [&websocket_ssl_server]() {
+          websocket_ssl_server.start(std::thread::hardware_concurrency());
+        }
+      };
+      std::cout << "Websocket SSL server running at wss://" << interface_address << ":8095..." <<  std::endl;
 
       std::this_thread::sleep_for(std::chrono::minutes{ 1000 });
       http_server.stop();
       https_server.stop();
+      websocket_server.stop();
+      websocket_ssl_server.stop();
       thread1.join();
       thread2.join();
+      thread3.join();
+      thread4.join();
 }
 
 // Run program: Ctrl + F5 or Debug > Start Without Debugging menu

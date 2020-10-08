@@ -619,6 +619,7 @@ namespace http {
         : _stream(std::move(socket)),
           _doc_root(doc_root) { }
 
+
     // Start the asynchronous operation
     void
     run() {
@@ -765,10 +766,9 @@ namespace http {
   };
 
   // Accepts incoming connections and launches the sessions
-  template <class RequestHandler  = http_request_handler<http_regex_router>,
-            class ErrorHandler    = http_error_handler,
-            class Session         = http_session<RequestHandler, ErrorHandler>>
-  class http_listener : public std::enable_shared_from_this<http_listener<RequestHandler, ErrorHandler, Session>> {
+  template <class Session         = http_session<http_request_handler<http_regex_router>, http_error_handler>,
+            class ErrorHandler    = http_error_handler>
+  class http_listener : public std::enable_shared_from_this<http_listener<Session, ErrorHandler>> {
 
    public:
 
@@ -863,7 +863,7 @@ namespace http {
   };
 
   template <class Router   = http_regex_router,
-            class Listener = http_listener<http_request_handler<Router>, http_error_handler>>
+            class Listener = http_listener<http_session<http_request_handler<Router>, http_error_handler>>>
   class http_server {
 
     public:
@@ -946,8 +946,6 @@ namespace http {
   template <class Router>
   using https_server =
       http_server<Router,
-                  http_listener<http_request_handler<Router>,
-                                http_error_handler,
-                                https_session<http_request_handler<Router>, http_error_handler>>>;
+                  http_listener<https_session<http_request_handler<Router>, http_error_handler>>>;
 }
 
