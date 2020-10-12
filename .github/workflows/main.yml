@@ -26,32 +26,37 @@ jobs:
       - uses: actions/checkout@v2
       
       - name: Add Boost
-        run: sudo add-apt-repository ppa:mhier/libboost-latest && sudo apt-get update
+        run: sudo add-apt-repository ppa:mhier/libboost-latest && sudo apt-get update 
       
       - name: Install Dependencies
         run: sudo apt install libboost1.74-dev libssl-dev qt5-qmake libstdc++-8-dev clang-9
 
+      - name: Clang Version
+        run: clang++ -v version
+        
       # Runs a set of commands using the runners shell
+     
+      - name: Make clean 
+        shell: bash
+        run: make clean -j8   
+        
       - name: QMake project Debug
         shell: bash
         run: qmake -qt=qt5 libhttp.pro -spec linux-clang CONFIG+=qml_debug CONFIG+=qtquickcompiler CONFIG+=force_debug_info CONFIG+=separate_debug_info CONFIG+=debug && /usr/bin/make qmake_all
+     
+      - name: Make Debug
+        shell: bash
+        run: make -j8 
 
       - name: Make clean 
         shell: bash
         run: make clean -j8
-
-      - name: Make
-        shell: bash
-        run: make -j8
       
       - name: QMake project Release
         shell: bash
         run: qmake -qt=qt5 libhttp.pro -spec linux-clang CONFIG+=qtquickcompiler && /usr/bin/make qmake_all
 
-      - name: Make clean 
-        shell: bash
-        run: make clean -j8
-
-      - name: Make
+      - name: Make Release
         shell: bash
         run: make -j8
+
