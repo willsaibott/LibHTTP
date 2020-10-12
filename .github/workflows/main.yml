@@ -53,7 +53,7 @@ jobs:
       # Runs a set of commands using the runners shell
       - name: QMake project Debug
         shell: bash
-        run: $Qt5_Dir/bin/qmake LibHTTP/libhttp.pro -spec linux-clang CONFIG+=qml_debug CONFIG+=qtquickcompiler CONFIG+=force_debug_info CONFIG+=separate_debug_info CONFIG+=debug && /usr/bin/make qmake_all
+        run: $Qt5_Dir/bin/qmake libhttp.pro -spec linux-clang CONFIG+=qml_debug CONFIG+=qtquickcompiler CONFIG+=force_debug_info CONFIG+=separate_debug_info CONFIG+=debug && /usr/bin/make qmake_all
 
       - name: Make clean 
         shell: bash
@@ -65,7 +65,7 @@ jobs:
       
       - name: QMake project Release
         shell: bash
-        run: $Qt5_Dir/bin/qmake LibHTTP/libhttp.pro -spec linux-clang CONFIG+=qtquickcompiler && /usr/bin/make qmake_all
+        run: $Qt5_Dir/bin/qmake libhttp.pro -spec linux-clang CONFIG+=qtquickcompiler && /usr/bin/make qmake_all
 
       - name: Make clean 
         shell: bash
