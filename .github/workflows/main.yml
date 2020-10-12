@@ -25,6 +25,9 @@ jobs:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
       
+      - name: Install Dependencies
+        run: apt install libboost-all-dev libssl-dev
+      
       - name: Cache Qt
         id: cache-qt
         uses: actions/cache@v1
