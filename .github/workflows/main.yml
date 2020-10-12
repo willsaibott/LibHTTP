@@ -25,6 +25,9 @@ jobs:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
       
+      - name: Add Boost
+        run: sudo add-apt-repository ppa:mhier/libboost-latest && sudo apt-get update
+      
       - name: Install Dependencies
         run: sudo apt install libboost1.74-dev libssl-dev qt5-qmake
 
