@@ -1,9 +1,9 @@
 // RestServer.cpp : This file contains the 'main' function. Program execution begins and ends there.
 //
 
-#include <LibHttp\http_server.h>
-#include <LibHttp\websocket.h>
-#include <RestServer\http_custom_router.h>
+#include <LibHttp/http_server.h>
+#include <LibHttp/websocket.h>
+#include <RestServer/http_custom_router.h>
 #include <string>
 #include <thread>
 #include <filesystem>

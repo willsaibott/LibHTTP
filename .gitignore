@@ -323,3 +323,8 @@ ASALocalRun/
 *.binlog
 *.lib
 *.bak
+LibHttp/Makefile
+
+Makefile
+
+.qmake.stash
