@@ -11,6 +11,7 @@ INCLUDEPATH += /usr/include/c++/8
 DEFINES += LIBHTTP_LIBRARY
 
 CONFIG += c++17 -Wall
+QMAKE_CXXFLAGS += -std=c++17
 #CONFIG += staticlib
 
 # The following define makes your compiler emit warnings if you use
