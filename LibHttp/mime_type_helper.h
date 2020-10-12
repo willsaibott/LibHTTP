@@ -1,12 +1,12 @@
 #pragma once
 
-#include <string_view>
+#include <boost/utility/string_view.hpp>
 #include <unordered_map>
 
 namespace helper {
 
     // Return a reasonable mime type based on the extension of a file.
-    inline std::string_view
+    inline boost::string_view
     mime_type(std::string_view extension) {
         static const std::unordered_map<std::string_view, std::string_view>
             mime_types {
@@ -37,7 +37,7 @@ namespace helper {
         if (it != mime_types.end()) {
             response = it->second;
         }
-        return response;
+        return { response.data(), response.size() };
     }
 
 }
