@@ -2,8 +2,8 @@
 //
 
 #include <LibHttp\http_server.h>
-#include "LibHttpTest\http_custom_router.h"
 #include <LibHttp\websocket.h>
+#include <RestServer\http_custom_router.h>
 #include <string>
 #include <thread>
 #include <filesystem>
@@ -73,7 +73,7 @@ int main()
           "QMUk26jPTIVTLfXmmwU0u8vUkpR7LQKkwwIBAg==\n"
           "-----END DH PARAMETERS-----\n";
 
-      const std::string interface_address{ "192.168.7.1" };
+      const std::string interface_address{ "127.0.0.1" };
       http::https_server<http_custom_router>
         https_server{ interface_address, 8045, std::filesystem::current_path() };
 
