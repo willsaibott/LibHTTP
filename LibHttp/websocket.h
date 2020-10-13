@@ -22,7 +22,7 @@
 
 namespace http {
 
-  class websocket_message {
+  class  websocket_message {
 
     std::string _buffer_data;
 
@@ -66,7 +66,7 @@ namespace http {
 
   };
 
-  struct echo_message_handler {
+  struct  echo_message_handler {
 
     inline websocket_message
     operator()(const websocket_message& message) const {
@@ -78,7 +78,8 @@ namespace http {
   template <class MessageHandler,
             class Stream       = boost::beast::websocket::stream<boost::beast::tcp_stream>,
             class ErrorHandler = http_error_handler>
-  class websocket_section : public std::enable_shared_from_this<websocket_section<MessageHandler, Stream, ErrorHandler>>
+  class  websocket_section :
+      public std::enable_shared_from_this<websocket_section<MessageHandler, Stream, ErrorHandler>>
 
   {
   protected:
@@ -87,7 +88,7 @@ namespace http {
       Stream                                                     _ws;
       websocket_message                                          _input_message;
       websocket_message                                          _output_message;
-      boost::beast::flat_buffer                                  _buffer;;
+      boost::beast::flat_buffer                                  _buffer;
       std::filesystem::path                                      _root_path;
 
   public:
@@ -98,7 +99,9 @@ namespace http {
                         const std::filesystem::path&                doc_root)
           : _ws{ std::move(socket) },
             _root_path{ doc_root }
-      { }
+      {
+        boost::ignore_unused(ssl_context);
+      }
 
       explicit
       websocket_section(Stream&&                                    stream,
@@ -145,6 +148,7 @@ namespace http {
 
       virtual void
       on_handshake(boost::beast::error_code ec) {
+        boost::ignore_unused(ec);
       }
 
       void

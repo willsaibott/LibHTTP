@@ -15,6 +15,8 @@
 //
 //------------------------------------------------------------------------------
 
+#pragma clang diagnostic ignored "-Wweak-vtables"
+
 #include <algorithm>
 #include <string_view>
 #include <string>
@@ -35,7 +37,7 @@
 #include <string>
 #include <thread>
 #include <vector>
-
+#include "libhttp_global.h"
 #include "mime_type_helper.h"
 #include "path_helper.h"
 
@@ -86,28 +88,30 @@ namespace http {
   class https_session;
 
   // Handles an HTTP server connection
-  class IResponseSender {
+  class  IResponseSender {
 
     public:
+    IResponseSender() = default;
+    virtual ~IResponseSender() {}
 
     virtual void
     async_send(boost::beast::http::response<boost::beast::http::dynamic_body>&& msg)
-    { };
+    { boost::ignore_unused(msg); }
 
     virtual void
     async_send(boost::beast::http::response<boost::beast::http::string_body>&& msg)
-    { };
+    { boost::ignore_unused(msg); }
 
     virtual void
     async_send(boost::beast::http::response<boost::beast::http::file_body>&& msg)
-    { };
+    { boost::ignore_unused(msg); }
 
     virtual void
     async_send(boost::beast::http::response<boost::beast::http::empty_body>&& msg)
-    { };
+    { boost::ignore_unused(msg); }
   };
 
-  class ssl_dh_context_creator {
+  class  ssl_dh_context_creator {
   public:
 
     inline net::ssl::context*
@@ -121,6 +125,8 @@ namespace http {
 
       context->set_password_callback(
         [password] (std::size_t max_length, auto password_purpose) {
+          boost::ignore_unused(max_length);
+          boost::ignore_unused(password_purpose);
           return password;
         });
       context->set_options(net::ssl::context::default_workarounds |
@@ -135,7 +141,7 @@ namespace http {
 
   };
 
-  class http_regex_router {
+  class  http_regex_router {
   public:
     using http_request_t = boost::beast::http::request<boost::beast::http::string_body>;
     using middleware_t   = std::function<bool(const std::filesystem::path&,
@@ -199,6 +205,7 @@ namespace http {
                               const http_request_t&        request,
                               IResponseSender&             sender)
     {
+      boost::ignore_unused(root);
       sender.async_send(not_implemented(request));
     }
 
@@ -345,7 +352,7 @@ namespace http {
   };
 
   template <class Router = http_regex_router>
-  class http_request_handler {
+  class  http_request_handler {
 
   public:
     using http_request_t = boost::beast::http::request<boost::beast::http::string_body>;
@@ -375,7 +382,7 @@ namespace http {
       Router _router;
   };
 
-  class http_error_handler {
+  class  http_error_handler {
   public:
 
   // Report a failure
@@ -407,7 +414,7 @@ namespace http {
   // Handles an HTTPS server connection
   template <class RequestHandler = http_request_handler<http_regex_router>,
             class ErrorHandler   = http_error_handler>
-  class https_session
+  class  https_session
     : public std::enable_shared_from_this<https_session<RequestHandler, ErrorHandler>>,
       public IResponseSender
   {
@@ -536,6 +543,9 @@ namespace http {
 
     void
     on_close(boost::beast::error_code ec) {
+      if (ec) {
+        _error_handler(ec, "close");
+      }
       boost::beast::get_lowest_layer(_stream).socket().close();
     }
 
@@ -583,7 +593,7 @@ namespace http {
           boost::beast::bind_front_handler(&https_session::on_write,
                                            this->shared_from_this(),
                                            sp->need_eof()));
-    };
+    }
 
     std::string
     to_utf8(const wchar_t* utf16) const {
@@ -596,7 +606,7 @@ namespace http {
   // Handles an HTTP server connection
   template <class RequestHandler = http_request_handler<http_regex_router>,
             class ErrorHandler   = http_error_handler>
-  class http_session
+  class  http_session
     : public std::enable_shared_from_this<http_session<RequestHandler, ErrorHandler>>,
       public IResponseSender
   {
@@ -617,7 +627,10 @@ namespace http {
                  std::shared_ptr<net::ssl::context>  ssl_context,
                  const std::filesystem::path&        doc_root)
         : _stream(std::move(socket)),
-          _doc_root(doc_root) { }
+          _doc_root(doc_root)
+    {
+      boost::ignore_unused(ssl_context);
+    }
 
 
     // Start the asynchronous operation
@@ -762,13 +775,13 @@ namespace http {
           boost::beast::bind_front_handler(&http_session::on_write,
                                            this->shared_from_this(),
                                            sp->need_eof()));
-    };
+    }
   };
 
   // Accepts incoming connections and launches the sessions
   template <class Session         = http_session<http_request_handler<http_regex_router>, http_error_handler>,
             class ErrorHandler    = http_error_handler>
-  class http_listener : public std::enable_shared_from_this<http_listener<Session, ErrorHandler>> {
+  class  http_listener : public std::enable_shared_from_this<http_listener<Session, ErrorHandler>> {
 
    public:
 
@@ -864,7 +877,7 @@ namespace http {
 
   template <class Router   = http_regex_router,
             class Listener = http_listener<http_session<http_request_handler<Router>, http_error_handler>>>
-  class http_server {
+  class  http_server {
 
     public:
 
@@ -885,7 +898,7 @@ namespace http {
 
       _listener->run();
       _threads.reserve(number_of_threads);
-      for (auto ii = 0; ii < number_of_threads - 1; ii++) {
+      for (auto ii = 0ull; ii < number_of_threads - 1; ii++) {
         _threads.emplace_back([this] { _ioc->run(); });
       }
       _ioc->run();
