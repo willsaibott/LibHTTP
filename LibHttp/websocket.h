@@ -22,7 +22,7 @@
 
 namespace http {
 
-  class LIBHTTPSHARED_EXPORT websocket_message {
+  class  websocket_message {
 
     std::string _buffer_data;
 
@@ -66,7 +66,7 @@ namespace http {
 
   };
 
-  struct LIBHTTPSHARED_EXPORT echo_message_handler {
+  struct  echo_message_handler {
 
     inline websocket_message
     operator()(const websocket_message& message) const {
@@ -78,7 +78,7 @@ namespace http {
   template <class MessageHandler,
             class Stream       = boost::beast::websocket::stream<boost::beast::tcp_stream>,
             class ErrorHandler = http_error_handler>
-  class LIBHTTPSHARED_EXPORT websocket_section :
+  class  websocket_section :
       public std::enable_shared_from_this<websocket_section<MessageHandler, Stream, ErrorHandler>>
 
   {

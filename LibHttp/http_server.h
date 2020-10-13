@@ -88,7 +88,7 @@ namespace http {
   class https_session;
 
   // Handles an HTTP server connection
-  class LIBHTTPSHARED_EXPORT IResponseSender {
+  class  IResponseSender {
 
     public:
     IResponseSender() = default;
@@ -111,7 +111,7 @@ namespace http {
     { boost::ignore_unused(msg); }
   };
 
-  class LIBHTTPSHARED_EXPORT ssl_dh_context_creator {
+  class  ssl_dh_context_creator {
   public:
 
     inline net::ssl::context*
@@ -141,7 +141,7 @@ namespace http {
 
   };
 
-  class LIBHTTPSHARED_EXPORT http_regex_router {
+  class  http_regex_router {
   public:
     using http_request_t = boost::beast::http::request<boost::beast::http::string_body>;
     using middleware_t   = std::function<bool(const std::filesystem::path&,
@@ -352,7 +352,7 @@ namespace http {
   };
 
   template <class Router = http_regex_router>
-  class LIBHTTPSHARED_EXPORT http_request_handler {
+  class  http_request_handler {
 
   public:
     using http_request_t = boost::beast::http::request<boost::beast::http::string_body>;
@@ -382,7 +382,7 @@ namespace http {
       Router _router;
   };
 
-  class LIBHTTPSHARED_EXPORT http_error_handler {
+  class  http_error_handler {
   public:
 
   // Report a failure
@@ -414,7 +414,7 @@ namespace http {
   // Handles an HTTPS server connection
   template <class RequestHandler = http_request_handler<http_regex_router>,
             class ErrorHandler   = http_error_handler>
-  class LIBHTTPSHARED_EXPORT https_session
+  class  https_session
     : public std::enable_shared_from_this<https_session<RequestHandler, ErrorHandler>>,
       public IResponseSender
   {
@@ -606,7 +606,7 @@ namespace http {
   // Handles an HTTP server connection
   template <class RequestHandler = http_request_handler<http_regex_router>,
             class ErrorHandler   = http_error_handler>
-  class LIBHTTPSHARED_EXPORT http_session
+  class  http_session
     : public std::enable_shared_from_this<http_session<RequestHandler, ErrorHandler>>,
       public IResponseSender
   {
@@ -781,7 +781,7 @@ namespace http {
   // Accepts incoming connections and launches the sessions
   template <class Session         = http_session<http_request_handler<http_regex_router>, http_error_handler>,
             class ErrorHandler    = http_error_handler>
-  class LIBHTTPSHARED_EXPORT http_listener : public std::enable_shared_from_this<http_listener<Session, ErrorHandler>> {
+  class  http_listener : public std::enable_shared_from_this<http_listener<Session, ErrorHandler>> {
 
    public:
 
@@ -877,7 +877,7 @@ namespace http {
 
   template <class Router   = http_regex_router,
             class Listener = http_listener<http_session<http_request_handler<Router>, http_error_handler>>>
-  class LIBHTTPSHARED_EXPORT http_server {
+  class  http_server {
 
     public:
 
