@@ -25,11 +25,19 @@ jobs:
       - name: Add msbuild to PATH
         uses: microsoft/setup-msbuild@v1.0.2
 
+      - name: Setup VSTest.console.exe
+        # You may pin to the exact commit or the version.
+        # uses: darenm/Setup-VSTest@379ad01ca9f1bb21b453f50d8165d76fa60a4d05
+        uses: darenm/Setup-VSTest@v1
+
       - name: Restore Nuget Packages (Boost, OpenSSL)
         run: nuget restore LibHttp.sln
         
       - name: Clean Solution
         run: MSBuild.exe LibHttp.sln -t:clean
 
-      - name: Rebuild Solution
-        run: MSBuild.exe LibHttp.sln -t:rebuild
+      - name: Rebuild Solution Release
+        run: MSBuild.exe LibHttp.sln -t:rebuild  /p:Configuration="Debug" /p:Platform="x64"
+
+      - name: Rebuild Solution Release
+        run: MSBuild.exe LibHttp.sln -t:rebuild  /p:Configuration="Release" /p:Platform="x64"

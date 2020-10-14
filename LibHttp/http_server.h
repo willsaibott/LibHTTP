@@ -15,7 +15,9 @@
 //
 //------------------------------------------------------------------------------
 
-#pragma clang diagnostic ignored "-Wweak-vtables"
+#ifdef __clang__
+  #pragma clang diagnostic ignored "-Wweak-vtables"
+#endif
 
 #include <algorithm>
 #include <string_view>
@@ -37,6 +39,7 @@
 #include <string>
 #include <thread>
 #include <vector>
+#include <atomic>
 #include "libhttp_global.h"
 #include "mime_type_helper.h"
 #include "path_helper.h"
@@ -798,13 +801,16 @@ namespace http {
 
       // Open the acceptor
       _acceptor.open(endpoint.protocol(), ec);
+      _last_error = ec;
       if (ec) {
         _error_handler(ec, "open");
+        _last_error = ec;
         return;
       }
 
       // Allow address reuse
       _acceptor.set_option(net::socket_base::reuse_address(true), ec);
+      _last_error = ec;
       if (ec) {
         _error_handler(ec, "set_option");
         return;
@@ -812,6 +818,7 @@ namespace http {
 
       // Bind to the server address
       _acceptor.bind(endpoint, ec);
+      _last_error = ec;
       if (ec) {
         _error_handler(ec, "bind");
         return;
@@ -819,6 +826,7 @@ namespace http {
 
       // Start listening for connections
       _acceptor.listen(net::socket_base::max_listen_connections, ec);
+      _last_error = ec;
       if (ec) {
         _error_handler(ec, "listen");
         return;
@@ -827,7 +835,16 @@ namespace http {
 
     // Start accepting incoming connections
     void run() {
+      if (_last_error) {
+        return _error_handler(_last_error, "accept");
+      }
+
       do_accept();
+    }
+
+    boost::beast::error_code
+    last_error() const {
+      return _last_error;
     }
 
    private:
@@ -868,11 +885,13 @@ namespace http {
       }
     }
 
-    net::io_context&                    _ioc;
-    std::shared_ptr<net::ssl::context>  _ssl_context;
-    boost::asio::ip::tcp::acceptor      _acceptor;
-    std::filesystem::path               _doc_root;
-    ErrorHandler                        _error_handler;
+
+    net::io_context&                       _ioc;
+    std::shared_ptr<net::ssl::context>     _ssl_context;
+    boost::asio::ip::tcp::acceptor         _acceptor;
+    std::filesystem::path                  _doc_root;
+    ErrorHandler                           _error_handler;
+    boost::beast::error_code               _last_error;
   };
 
   template <class Router   = http_regex_router,
@@ -889,19 +908,32 @@ namespace http {
       _root{ rootpath }
     { }
 
+    ~http_server() {
+      stop();
+    }
+
     void
-    start(std::size_t number_of_threads) {
+    start(std::size_t number_of_threads, bool blocking = true) {
       if (!_ioc) {
-        _ioc = std::make_unique<net::io_context>(number_of_threads);
+        _ioc = std::make_unique<net::io_context>(static_cast<int>(number_of_threads));
         create_new_listener();
       }
 
-      _listener->run();
-      _threads.reserve(number_of_threads);
-      for (auto ii = 0ull; ii < number_of_threads - 1; ii++) {
-        _threads.emplace_back([this] { _ioc->run(); });
+      if (!_listener->last_error()) {
+        _listener->run();
+        _threads.reserve(number_of_threads);
+        if (blocking) {
+          for (auto ii = 0ull; ii < number_of_threads - 1; ii++) {
+            _threads.emplace_back([this] { _ioc->run(); });
+          }
+          _ioc->run();
+        }
+        else {
+          for (auto ii = 0ull; ii < number_of_threads; ii++) {
+            _threads.emplace_back([this] { _ioc->run(); });
+          }
+        }
       }
-      _ioc->run();
     }
 
     void
@@ -912,7 +944,8 @@ namespace http {
         for (auto& t : _threads) {
           t.join();
         }
-
+        _last_error = _listener->last_error();
+        _listener.reset();
         _ioc.reset();
       }
     }
@@ -927,12 +960,18 @@ namespace http {
       return _listener;
     }
 
+    boost::beast::error_code
+    last_error() const {
+      return _last_error;
+    }
+
     http_server&
     create_new_listener() {
+      using namespace boost::asio::ip;
       _listener =
         std::make_shared<Listener>(*_ioc,
                                    _ssl_context,
-                                   boost::asio::ip::tcp::endpoint{ boost::asio::ip::make_address(_address), _port },
+                                   tcp::endpoint{ make_address(_address), _port },
                                    _root);
       return *this;
     }
@@ -954,6 +993,7 @@ namespace http {
     std::shared_ptr<net::ssl::context>  _ssl_context;
     std::vector<std::thread>            _threads;
     std::shared_ptr<Listener>           _listener;
+    boost::beast::error_code            _last_error;
   };
 
   template <class Router>
