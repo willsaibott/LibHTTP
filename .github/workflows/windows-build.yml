@@ -36,8 +36,14 @@ jobs:
       - name: Clean Solution
         run: MSBuild.exe LibHttp.sln -t:clean
 
-      - name: Rebuild Solution Release
+      - name: Rebuild Solution Debug|x64
         run: MSBuild.exe LibHttp.sln -t:rebuild  /p:Configuration="Debug" /p:Platform="x64"
 
-      - name: Rebuild Solution Release
+      - name: Rebuild Solution Release|x64
         run: MSBuild.exe LibHttp.sln -t:rebuild  /p:Configuration="Release" /p:Platform="x64"
+
+      - name: Run Tests in Debug
+        run: vstest.console.exe x64\Debug\LibHttpTest.dll
+
+      - name: Run Tests in Release
+        run: vstest.console.exe x64\Release\LibHttpTest.dll
