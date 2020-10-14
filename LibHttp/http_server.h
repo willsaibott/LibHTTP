@@ -327,7 +327,6 @@ namespace http {
           const auto& regex      { handler.first  };
           const auto& middleware { handler.second };
           boost::smatch matches;
-          const auto utf16 = std::wstring(target.begin(), target.end());
           if (boost::regex_match(target, matches, regex)) {
             route_found = true;
             if (middleware(root, request, matches, sender)) {

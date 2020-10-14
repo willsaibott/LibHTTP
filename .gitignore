@@ -323,8 +323,10 @@ ASALocalRun/
 *.binlog
 *.lib
 *.bak
-LibHttp/Makefile
 
+#Other Project Files
+LibHttp/Makefile
+packages/
 Makefile
 
 .qmake.stash

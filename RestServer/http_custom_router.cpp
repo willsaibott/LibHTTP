@@ -14,7 +14,7 @@ http_custom_router() {
     res.set(http::field::content_type, helper::mime_type(".json"));
     res.keep_alive(request.keep_alive());
     res.body() = "{ \"Root\": \"reached\" }";
-    res.content_length(res.body().size());
+    res.prepare_payload();
     sender.async_send(std::move(res));
     boost::ignore_unused(root);
     boost::ignore_unused(matches);
@@ -35,7 +35,7 @@ http_custom_router() {
                   std::string{ matches[matches.size() - 1]} +
                   "\"}";*/
     res.body() = "<!DOCTYPE html><html><head><title>Express C++</title><link rel=\"stylesheet\" href=\"/stylesheets/style.css\"></head><body><h1>Express</h1><p>Welcome to Express C++ using Boost Beast (Asio)</p><p>Parameter: <b>" + matches[1] + "</b></p></body></html>";
-    res.content_length(res.body().size());
+    res.prepare_payload();
     sender.async_send(std::move(res));
 
     boost::ignore_unused(root);
@@ -53,8 +53,9 @@ http_custom_router() {
     res.set(http::field::content_type, helper::mime_type(".json"));
     res.keep_alive(request.keep_alive());
     res.body() = std::string{ "{ \"print\": \"" } +
-                 std::string{ matches[matches.size() - 1ull]} +
+                 std::string{ matches[static_cast<int>(matches.size() - 1)]} +
                  "\"}";
+    res.prepare_payload();
     sender.async_send(std::move(res));
 
     boost::ignore_unused(root);
