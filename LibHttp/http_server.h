@@ -866,6 +866,9 @@ namespace http {
           }
         }
       }
+      else {
+        _last_error = _listener->last_error();
+      }
     }
 
     void
