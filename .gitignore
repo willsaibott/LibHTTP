@@ -330,3 +330,12 @@ packages/
 Makefile
 
 .qmake.stash
+/external/libhttpd.dll
+/external/libssl-1_1-x64.dll
+/external/ab
+/external/extra
+/external/ab.exe
+/external/abs.exe
+/external/apr_crypto_openssl-1.dll
+/external/libcrypto-1_1-x64.dll
+/external/libcurl.dll

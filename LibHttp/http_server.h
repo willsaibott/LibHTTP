@@ -87,9 +87,6 @@
 namespace http {
   namespace net = boost::asio;
 
-  template <class RequestHandler, class ErrorHandler>
-  class https_session;
-
   // Handles an HTTP server connection
   class  IResponseSender {
 
@@ -385,6 +382,8 @@ namespace http {
   };
 
   class  http_error_handler {
+    inline static std::mutex _mtx;
+
   public:
 
   // Report a failure
@@ -408,217 +407,27 @@ namespace http {
       // after the message has been completed, so it is safe to ignore it.
 
       if (ec != net::ssl::error::stream_truncated) {
+        std::lock_guard guard{ _mtx };
         std::cerr << what << ": " << ec.message() << "\n";
       }
     }
   };
 
-  // Handles an HTTPS server connection
-  template <class RequestHandler = http_request_handler<http_regex_router>,
-            class ErrorHandler   = http_error_handler>
-  class  https_session
-    : public std::enable_shared_from_this<https_session<RequestHandler, ErrorHandler>>,
-      public IResponseSender
-  {
-  public:
-
-    boost::beast::ssl_stream<boost::beast::tcp_stream>               _stream;
-    boost::beast::flat_buffer                                        _buffer;
-    std::filesystem::path                                            _doc_root;
-    boost::beast::http::request<boost::beast::http::string_body>     _req;
-    std::shared_ptr<void>                                            _res;
-    ErrorHandler                                                     _error_handler;
-    RequestHandler                                                   _request_handler;
-
- public:
-    // Take ownership of the socket
-    explicit
-    https_session(boost::asio::ip::tcp::socket&&      socket,
-                  std::shared_ptr<net::ssl::context>  ssl_context,
-                  const std::filesystem::path&        doc_root)
-        : _stream(std::move(socket), *ssl_context),
-          _doc_root(doc_root) { }
-
-    // Start the asynchronous operation
-    void
-    run() {
-      // We need to be executing within a strand to perform async operations
-      // on the I/O objects in this Session. Although not strictly necessary
-      // for single-threaded contexts, this example code is written to be
-      // thread-safe by default.
-      net::dispatch(_stream.get_executor(),
-                    boost::beast::bind_front_handler(&https_session::on_run,
-                                                     this->shared_from_this()));
-    }
-
-    virtual void
-    on_run() {
-      // Set the timeout.
-      boost::beast::get_lowest_layer(_stream).expires_after(std::chrono::seconds(30));
-      // Perform the SSL handshake
-      _stream.async_handshake(
-          net::ssl::stream_base::server,
-          boost::beast::bind_front_handler(&https_session::on_handshake,
-                                    this->shared_from_this()));
-    }
-
-    void
-    on_handshake(boost::beast::error_code ec) {
-      if (ec) return (_error_handler(ec, "handshake"));
-
-      do_read();
-    }
-
-    void
-    do_read() {
-      // Make the request empty before reading,
-      // otherwise the operation behavior is undefined.
-      _req = {};
-
-      // Set the timeout.
-      boost::beast::get_lowest_layer(_stream).expires_after(std::chrono::seconds(30));
-
-      // Read a request
-      boost::beast::http::async_read(
-          _stream, _buffer, _req,
-          boost::beast::bind_front_handler(&https_session::on_read,
-                                           this->shared_from_this()));
-    }
-
-    void
-    on_read(boost::beast::error_code ec, std::size_t bytes_transferred) {
-      boost::ignore_unused(bytes_transferred);
-
-      // This means they closed the connection
-      if (ec == boost::beast::http::error::end_of_stream) return do_close();
-
-      if (ec) return (_error_handler(ec, "read"));
-
-      /*_req.body() = reinterpret_cast*/
-      // Send the response
-      _request_handler(_doc_root, std::move(_req), *this);
-    }
-
-    void
-    on_write(bool                     close,
-             boost::beast::error_code ec,
-             std::size_t              bytes_transferred)
-    {
-      boost::ignore_unused(bytes_transferred);
-
-      if (ec) return (_error_handler(ec, "write"));
-
-      if (close) {
-        // This means we should close the connection, usually because
-        // the response indicated the "Connection: close" semantic.
-        return do_close();
-      }
-
-      // We're done with the response so delete it
-      _res = nullptr;
-
-      // Read another request
-      do_read();
-    }
-
-    void
-    do_close() {
-      // Set the timeout.
-      boost::beast::get_lowest_layer(_stream).expires_after(std::chrono::seconds(30));
-
-      // Perform the SSL shutdown
-      _stream.async_shutdown(
-          boost::beast::bind_front_handler(&https_session::on_shutdown,
-                                           this->shared_from_this()));
-      /*boost::beast::http::async_write(_stream, )*/
-    }
-
-    void on_shutdown(boost::beast::error_code ec) {
-      if (ec) {
-        _error_handler(ec, "shutdown");
-        boost::beast::get_lowest_layer(_stream).socket().shutdown(boost::asio::socket_base::shutdown_send, ec);
-        boost::beast::get_lowest_layer(_stream).socket().close();
-        return boost::beast::get_lowest_layer(_stream).close();
-      }
-      boost::beast::get_lowest_layer(_stream).socket().shutdown(boost::asio::socket_base::shutdown_send, ec);
-    }
-
-    void
-    on_close(boost::beast::error_code ec) {
-      if (ec) {
-        _error_handler(ec, "close");
-      }
-      boost::beast::get_lowest_layer(_stream).socket().close();
-    }
-
-    protected:
-
-    virtual void
-    async_send(boost::beast::http::response<boost::beast::http::dynamic_body>&& msg) override
-    {
-      generic_async_send(std::move(msg));
-    }
-
-    virtual void
-    async_send(boost::beast::http::response<boost::beast::http::string_body>&& msg) override
-    {
-      generic_async_send(std::move(msg));
-    }
-
-    virtual void
-    async_send(boost::beast::http::response<boost::beast::http::file_body>&& msg) override
-    {
-      generic_async_send(std::move(msg));
-    }
-
-    virtual void
-    async_send(boost::beast::http::response<boost::beast::http::empty_body>&& msg) override
-    {
-      generic_async_send(std::move(msg));
-    }
-
-    template <class ResponseType> void
-    generic_async_send(ResponseType&& msg) {
-      // The lifetime of the message has to extend
-      // for the duration of the async operation so
-      // we use a shared_ptr to manage it.
-      auto sp = std::make_shared<ResponseType>(std::move(msg));
-
-      // Store a type-erased version of the shared
-      // pointer in the class to keep it alive.
-      _res = sp;
-
-      // Write the response
-      boost::beast::http::async_write(
-          _stream,
-          *sp,
-          boost::beast::bind_front_handler(&https_session::on_write,
-                                           this->shared_from_this(),
-                                           sp->need_eof()));
-    }
-
-    std::string
-    to_utf8(const wchar_t* utf16) const {
-      std::wstring utf16String{ utf16 };
-      std::wstring_convert<std::codecvt_utf8<wchar_t>> convert;
-      return convert.to_bytes( utf16String );
-    }
-  };
-
   // Handles an HTTP server connection
   template <class RequestHandler = http_request_handler<http_regex_router>,
+            class Stream         = boost::beast::tcp_stream,
             class ErrorHandler   = http_error_handler>
   class  http_session
-    : public std::enable_shared_from_this<http_session<RequestHandler, ErrorHandler>>,
+    : public std::enable_shared_from_this<http_session<RequestHandler, Stream, ErrorHandler>>,
       public IResponseSender
   {
-  public:
+  protected:
 
-    boost::beast::tcp_stream                                         _stream;
     boost::beast::flat_buffer                                        _buffer;
     std::filesystem::path                                            _doc_root;
     boost::beast::http::request<boost::beast::http::string_body>     _req;
     std::shared_ptr<void>                                            _res;
+    Stream                                                           _stream;
     ErrorHandler                                                     _error_handler;
     RequestHandler                                                   _request_handler;
 
@@ -634,6 +443,14 @@ namespace http {
       boost::ignore_unused(ssl_context);
     }
 
+    explicit
+    http_session(Stream&& stream, const std::filesystem::path& doc_root)
+      : _stream{ std::move(stream) },
+        _doc_root{ doc_root }
+    { }
+
+    virtual
+    ~http_session() { }
 
     // Start the asynchronous operation
     void
@@ -650,7 +467,7 @@ namespace http {
     virtual void
     on_run() {
       // Set the timeout.
-      _stream.expires_after(std::chrono::seconds(30));
+      boost::beast::get_lowest_layer(_stream).expires_after(std::chrono::seconds(30));
       // We need to be executing within a strand to perform async operations
       // on the I/O objects in this session. Although not strictly necessary
       // for single-threaded contexts, this example code is written to be
@@ -660,6 +477,11 @@ namespace http {
                                                      this->shared_from_this()));
     }
 
+    virtual void
+    on_handshake(boost::beast::error_code ec) {
+      boost::ignore_unused(ec);
+    }
+
     void
     do_read() {
       // Make the request empty before reading,
@@ -667,7 +489,7 @@ namespace http {
       _req = {};
 
       // Set the timeout.
-      _stream.expires_after(std::chrono::seconds(30));
+      boost::beast::get_lowest_layer(_stream).expires_after(std::chrono::seconds(30));
 
       // Read a request
       boost::beast::http::async_read(
@@ -681,9 +503,14 @@ namespace http {
       boost::ignore_unused(bytes_transferred);
 
       // This means they closed the connection
-      if (ec == boost::beast::http::error::end_of_stream) return do_close();
+      if (ec == boost::beast::http::error::end_of_stream) {
+        return do_close();
+      }
 
-      if (ec) return (_error_handler(ec, "read"));
+      if (ec) {
+        _error_handler(ec, "read");
+        return do_close();
+      }
 
       // Send the response
       _request_handler(_doc_root, std::move(_req), *this);
@@ -696,7 +523,10 @@ namespace http {
     {
       boost::ignore_unused(bytes_transferred);
 
-      if (ec) return (_error_handler(ec, "write"));
+      if (ec) {
+        _error_handler(ec, "write");
+        return do_close();
+      }
 
       if (close) {
         // This means we should close the connection, usually because
@@ -713,24 +543,26 @@ namespace http {
 
     void
     do_close() {
-      // Set the timeout.
-      _stream.expires_after(std::chrono::seconds(30));
-
-      boost::beast::error_code ec;
-      _stream.socket().shutdown(boost::asio::socket_base::shutdown_send, ec);
-
-      if (ec) { _error_handler(ec, "close"); }
-      // At this point the connection is closed gracefully
+      net::dispatch(_stream.get_executor(),
+                    boost::beast::bind_front_handler(&http_session::on_close,
+                                                     this->shared_from_this()));
     }
 
-    void on_shutdown(boost::beast::error_code ec) {
+    virtual void
+    on_close() {
+      on_shutdown(boost::beast::error_code{});
+    }
+
+    virtual void
+    on_shutdown(boost::beast::error_code ec) {
+      // Set the timeout.
+      boost::beast::get_lowest_layer(_stream).expires_after(std::chrono::seconds{ 30 });
+      boost::beast::get_lowest_layer(_stream).socket().shutdown(boost::asio::socket_base::shutdown_send, ec);
+
       if (ec) {
-        _error_handler(ec, "shutdown");
-        _stream.socket().shutdown(boost::asio::socket_base::shutdown_send, ec);
-        _stream.socket().close();
-        return _stream.close();
+        _error_handler(ec, "close");
       }
-      _stream.socket().shutdown(boost::asio::socket_base::shutdown_send, ec);
+      // At this point the connection is closed gracefully
     }
 
     protected:
@@ -780,8 +612,109 @@ namespace http {
     }
   };
 
+  // Handles an HTTPS server connection
+  template <class RequestHandler  = http_request_handler<http_regex_router>,
+            class Stream          = boost::beast::ssl_stream<boost::beast::tcp_stream>,
+            class ErrorHandler    = http_error_handler>
+    class https_session : public http_session<RequestHandler, Stream, ErrorHandler>
+  {
+    using base_http_session = http_session<RequestHandler, Stream, ErrorHandler>;
+  public:
+
+    // Take ownership of the socket
+    explicit
+    https_session(boost::asio::ip::tcp::socket&&      socket,
+                  std::shared_ptr<net::ssl::context>  ssl_context,
+                  const std::filesystem::path&        doc_root)
+        : base_http_session{ Stream{ std::move(socket), *ssl_context }, doc_root }
+    { }
+
+    explicit
+    https_session(Stream&& stream, const std::filesystem::path& doc_root)
+        : base_http_session{ std::move(stream), doc_root }
+    { }
+
+    ~https_session() {
+      if (!_closed) {
+        on_shutdown({});
+      }
+    }
+
+    virtual void
+    on_run() override {
+      // Set the timeout.
+      boost::beast::
+        get_lowest_layer(base_http_session::_stream)
+          .expires_after(std::chrono::seconds(30));
+
+      _closed = false;
+
+      // Perform the SSL handshake
+      base_http_session::
+        _stream.async_handshake(
+          net::ssl::stream_base::server,
+          boost::beast::bind_front_handler(&base_http_session::on_handshake,
+                                           this->shared_from_this()));
+    }
+
+    virtual void
+    on_handshake(boost::beast::error_code ec) override {
+      if (ec) {
+        return base_http_session::_error_handler(ec, "handshake");
+      }
+
+      base_http_session::
+      do_read();
+    }
+
+    virtual void
+    on_close() override {
+      if (!_closed) {
+        get_lowest_layer(base_http_session::_stream)
+            .expires_after(std::chrono::seconds(30));
+        base_http_session::
+        _stream.async_shutdown(
+          boost::beast::bind_front_handler(&base_http_session::on_shutdown,
+                                           this->shared_from_this()));
+      }
+    }
+
+    virtual void
+    on_shutdown(boost::beast::error_code ec) override {
+      using namespace boost::beast;
+      get_lowest_layer(base_http_session::_stream).expires_after(std::chrono::seconds{ 30 });
+      if (ec) {
+        base_http_session::_error_handler(ec, "before_shutdown");
+        get_lowest_layer(base_http_session::_stream).socket().shutdown(net::socket_base::shutdown_both, ec);
+        if (ec) {
+          base_http_session::_error_handler(ec, "after_shutdown");
+        }
+        get_lowest_layer(base_http_session::_stream).socket().close(ec);
+        if (ec) {
+          base_http_session::_error_handler(ec, "close");
+        }
+        _closed = true;
+        return get_lowest_layer(base_http_session::_stream).close();
+      }
+      get_lowest_layer(base_http_session::_stream).socket().shutdown(net::socket_base::shutdown_both, ec);
+      if (ec) {
+        base_http_session::_error_handler(ec, "after_shutdown");
+      }
+      get_lowest_layer(base_http_session::_stream).socket().close(ec);
+      if (ec) {
+        base_http_session::_error_handler(ec, "close");
+      }
+
+      _closed = true;
+    }
+
+    private:
+      bool _closed{ false };
+  };
+
+
   // Accepts incoming connections and launches the sessions
-  template <class Session         = http_session<http_request_handler<http_regex_router>, http_error_handler>,
+  template <class Session         = http_session<http_request_handler<http_regex_router>>,
             class ErrorHandler    = http_error_handler>
   class  http_listener : public std::enable_shared_from_this<http_listener<Session, ErrorHandler>> {
 
@@ -894,7 +827,7 @@ namespace http {
   };
 
   template <class Router   = http_regex_router,
-            class Listener = http_listener<http_session<http_request_handler<Router>, http_error_handler>>>
+            class Listener = http_listener<http_session<http_request_handler<Router>>>>
   class  http_server {
 
     public:
@@ -997,7 +930,6 @@ namespace http {
 
   template <class Router>
   using https_server =
-      http_server<Router,
-                  http_listener<https_session<http_request_handler<Router>, http_error_handler>>>;
+      http_server<Router, http_listener<https_session<http_request_handler<Router>>>>;
 }
 

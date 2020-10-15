@@ -219,48 +219,48 @@ namespace http {
             class Stream       = boost::beast::websocket::stream<boost::beast::ssl_stream<boost::beast::tcp_stream>>,
             class ErrorHandler = http_error_handler>
   class websocket_ssl_section : public websocket_section<MessageHandler, Stream, ErrorHandler> {
-    using base_section =  websocket_section<MessageHandler, Stream, ErrorHandler>;
+    using base_session =  websocket_section<MessageHandler, Stream, ErrorHandler>;
   public:
 
     explicit
     websocket_ssl_section(boost::asio::ip::tcp::socket&&              socket,
                           std::shared_ptr<boost::asio::ssl::context>  ssl_context,
                           const std::filesystem::path&                doc_root)
-        : base_section{ Stream{ std::move(socket), *ssl_context }, doc_root }
+        : base_session{ Stream{ std::move(socket), *ssl_context }, doc_root }
     { }
 
     virtual void
     on_run() override {
         // Set the timeout.
-        boost::beast::get_lowest_layer(base_section::_ws).expires_after(std::chrono::seconds(30));
+        boost::beast::get_lowest_layer(base_session::_ws).expires_after(std::chrono::seconds(30));
 
          // Perform the SSL handshake
-        base_section::
+        base_session::
         _ws.next_layer().async_handshake(
             boost::asio::ssl::stream_base::server,
             boost::beast::bind_front_handler(
-                &base_section::on_handshake,
+                &base_session::on_handshake,
                 this->shared_from_this()));
     }
 
     virtual void
     on_handshake(boost::beast::error_code ec) override {
         if(ec) {
-            return base_section::_error_handler(ec, "handshake");
+            return base_session::_error_handler(ec, "handshake");
         }
 
         // Turn off the timeout on the tcp_stream, because
         // the websocket stream has its own timeout system.
-        boost::beast::get_lowest_layer(base_section::_ws).expires_never();
+        boost::beast::get_lowest_layer(base_session::_ws).expires_never();
 
         // Set suggested timeout settings for the websocket
-        base_section::
+        base_session::
         _ws.set_option(
             boost::beast::websocket::stream_base::timeout::
                 suggested(boost::beast::role_type::server));
 
         // Set a decorator to change the Server of the handshake
-        base_section::
+        base_session::
         _ws.set_option(boost::beast::websocket::stream_base::decorator(
             [](boost::beast::websocket::response_type& res) {
                 res.set(boost::beast::http::field::server,
@@ -270,10 +270,10 @@ namespace http {
             }));
 
         // Accept the websocket handshake
-        base_section::
+        base_session::
         _ws.async_accept(
             boost::beast::bind_front_handler(
-                &base_section::on_accept,
+                &base_session::on_accept,
                 this->shared_from_this()));
     }
   };
