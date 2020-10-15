@@ -290,5 +290,5 @@ Master:
 
 Dev:
 
-![Linux_Build](https://github.com/willsaibott/LibHTTP/workflows/Linux_Build/badge.svg?branch=dev)
 ![Windows Build](https://github.com/willsaibott/LibHTTP/workflows/Windows%20Build/badge.svg?branch=dev)
+![Linux_Build](https://github.com/willsaibott/LibHTTP/workflows/Linux_Build/badge.svg?branch=dev)
