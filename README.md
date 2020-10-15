@@ -281,7 +281,7 @@ int main() {
 }
 
 ```
-# Release Status:
+# Build Status:
 
 Master:
 
