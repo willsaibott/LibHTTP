@@ -682,7 +682,6 @@ namespace http {
     virtual void
     on_shutdown(boost::beast::error_code ec) override {
       using namespace boost::beast;
-      get_lowest_layer(base_http_session::_stream).expires_after(std::chrono::seconds{ 30 });
       if (ec) {
         base_http_session::_error_handler(ec, "before_shutdown");
         get_lowest_layer(base_http_session::_stream).socket().shutdown(net::socket_base::shutdown_both, ec);
