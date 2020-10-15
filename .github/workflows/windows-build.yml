@@ -47,24 +47,3 @@ jobs:
 
       - name: Run Tests in Release
         run: vstest.console.exe x64\Release\LibHttpTest.dll
-
-      - name: Extract Apache benchmark
-        run: 7z e external\ab.7z -oexternal
-
-      - name: Run RestServer
-        run: Start-Process -NoNewWindow x64\Release\RestServer.exe; Start-Sleep -s 2.0       
-
-      - name: Run Apache Benchmark on HTTP server
-        run: |
-              external\ab -k -n 1000000 -c 64 http://127.0.0.1:18080/printbla
-
-      - name: Run Apache Benchmark on HTTPS server
-        run: | 
-              external\abs -k -r -n 1000000 -c 64 https://127.0.0.1:18045/printbla
-
-      - name: Stopping RestServer
-        run: |
-              Stop-Process -Name "RestServer"
-
-
-
