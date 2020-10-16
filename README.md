@@ -1,6 +1,57 @@
 # LibHTTP
 LibHTTP is a C++ library similar to NodeJS Express in usage, and is based on boost beast. [In development]
 
+## Main Classes:
+  * **http_server< Router, Listener >:** 
+    Base class that represents a HTTP Server that is associted with a boost::asio::io_context
+    
+    To modify how the routes are handled, it's just necessary to specialize the **Router** template argument
+    
+    To modify how the connection should be open, binded and accepted, it's just necessary to specialize the **Listener**  template argument
+    #### Declaration:
+    ```C++
+      template <class Router   = http_regex_router,
+                class Listener = http_listener<http_session<http_request_handler<Router>>>>
+      class  http_server
+    ``` 
+    
+  * **https_server< Router >:**
+    This class is a specialization of the base class http_server that has a http_listener with a https_session (inherits http_section) associated with.
+    
+    To modify how the routes are handled, it's just necessary to specialize the **Router** template argument
+    #### Declaration:
+    ```C++
+      template <class Router>
+      using https_server =
+          http_server<Router, http_listener<https_session<http_request_handler<Router>>>>;
+    ```
+    
+  * **websocket_server< MessageHandler >:**
+    This class is a specialization of the base class http_server that has a http_listener with a websocket_session associated with.
+    
+    To modify how the routes are handled, it's just necessary to specialize the **MessageHandler** template argument
+    **Note**: Currently, the behaviour of the websocket_server is reactive, it calls the MessageHandler when receives a message. It'll be modifiable in the future.
+    #### Declaration:
+    ```C++
+      template <class MessageHandler>
+      using websocket_server =
+          http_server<MessageHandler, http_listener<websocket_section<MessageHandler>, http_error_handler>>;
+    ```
+    
+  * **websocket_ssl_server< MessageHandler >:**
+    This class is a specialization of the base class http_server that has a http_listener with a websocket_ssl_session (inherits websocket_section) associated with.
+    
+    To modify how the routes are handled, it's just necessary to specialize the **MessageHandler** template argument
+    **Note**: Currently, the behaviour of the websocket_ssl_server is reactive, it calls the MessageHandler when receives a message. It'll be modifiable in the future.
+    #### Declaration:
+    ```C++
+      template <class MessageHandler>
+      using websocket_ssl_server =
+          http_server<MessageHandler, http_listener<websocket_ssl_section<MessageHandler>, http_error_handler>>;
+    ```
+  
+
+
 ## HTTP Router Usage Example:
 
 ### router.h:
@@ -280,6 +331,19 @@ int main() {
   return 0;
 }
 
+```
+
+### WebSocket::MessageHandler
+```C++
+  struct  echo_message_handler {
+
+    inline websocket_message
+    operator()(const websocket_message& message) const {
+      websocket_message response = message;
+      return response.write(" \"[echo]\"");
+    }
+    
+  };
 ```
 # Build Status:
 
