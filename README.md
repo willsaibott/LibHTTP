@@ -4,17 +4,17 @@ LibHTTP is a C++ library similar to NodeJS Express in usage, and is based on boo
 ## Main Classes:
    * **http_server< Router, Listener >:** 
     
-    Base class that represents a HTTP Server that is associted with a boost::asio::io_context
+     Base class that represents a HTTP Server that is associted with a boost::asio::io_context
     
-    To modify how the routes are handled, it's just necessary to specialize the **Router** template argument
+     To modify how the routes are handled, it's just necessary to specialize the **Router** template argument
     
-    To modify how the connection should be open, binded and accepted, it's just necessary to specialize the **Listener**  template argument
-    #### Declaration:
-    ```C++
-      template <class Router   = http_regex_router,
-                class Listener = http_listener<http_session<http_request_handler<Router>>>>
-      class  http_server
-    ``` 
+     To modify how the connection should be open, binded and accepted, it's just necessary to specialize the **Listener**  template argument
+     #### Declaration:
+     ```C++
+       template <class Router   = http_regex_router,
+                 class Listener = http_listener<http_session<http_request_handler<Router>>>>
+       class  http_server
+     ``` 
     
   * **https_server< Router >:**
     
