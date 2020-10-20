@@ -1,3 +1,15 @@
+# Build Status:
+
+Master:
+
+![Windows Build](https://github.com/willsaibott/LibHTTP/workflows/Windows%20Build/badge.svg?branch=master)
+![Linux_Build](https://github.com/willsaibott/LibHTTP/workflows/Linux_Build/badge.svg?branch=master)
+
+Dev:
+
+![Windows Build](https://github.com/willsaibott/LibHTTP/workflows/Windows%20Build/badge.svg?branch=dev)
+![Linux_Build](https://github.com/willsaibott/LibHTTP/workflows/Linux_Build/badge.svg?branch=dev)
+
 # LibHTTP
 LibHTTP is a C++ library similar to NodeJS Express in usage, and is based on boost beast. [In development]
 
@@ -351,14 +363,3 @@ int main() {
     
   };
 ```
-# Build Status:
-
-Master:
-
-![Windows Build](https://github.com/willsaibott/LibHTTP/workflows/Windows%20Build/badge.svg?branch=master)
-![Linux_Build](https://github.com/willsaibott/LibHTTP/workflows/Linux_Build/badge.svg?branch=master)
-
-Dev:
-
-![Windows Build](https://github.com/willsaibott/LibHTTP/workflows/Windows%20Build/badge.svg?branch=dev)
-![Linux_Build](https://github.com/willsaibott/LibHTTP/workflows/Linux_Build/badge.svg?branch=dev)
