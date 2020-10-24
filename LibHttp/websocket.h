@@ -110,6 +110,8 @@ namespace http {
             _root_path{ doc_root }
       { }
 
+      virtual ~websocket_section() { }
+
       // Get on the correct executor
       void
       run() {

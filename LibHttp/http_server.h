@@ -437,16 +437,16 @@ namespace http {
     http_session(boost::asio::ip::tcp::socket&&      socket,
                  std::shared_ptr<net::ssl::context>  ssl_context,
                  const std::filesystem::path&        doc_root)
-        : _stream(std::move(socket)),
-          _doc_root(doc_root)
+        : _doc_root(doc_root),
+          _stream(std::move(socket))
     {
       boost::ignore_unused(ssl_context);
     }
 
     explicit
     http_session(Stream&& stream, const std::filesystem::path& doc_root)
-      : _stream{ std::move(stream) },
-        _doc_root{ doc_root }
+      : _doc_root{ doc_root },
+        _stream{ std::move(stream) }
     { }
 
     virtual
@@ -834,9 +834,9 @@ namespace http {
     http_server(const std::string&            address  = "127.0.0.1",
                 std::uint16_t                 port     = 8080,
                 const std::filesystem::path&  rootpath = "/") :
+      _root{ rootpath },
       _address{ address },
-      _port{ port     },
-      _root{ rootpath }
+      _port{ port     }
     { }
 
     ~http_server() {
