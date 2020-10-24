@@ -36,8 +36,8 @@ message(App output dir: $${DESTDIR})
 
 INCLUDEPATH += $$PWD/../LibHttp
 DEPENDPATH += $$PWD/../LibHttp
+PRE_TARGETDEPS += $$DESTDIR/libLibHttp.a
 
 LIBS += -L$$DESTDIR/ -lLibHttp
 
-PRE_TARGETDEPS += $$DESTDIR/libLibHttp.a
 message(Target dependencies: $${DESTDIR})
