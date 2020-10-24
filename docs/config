@@ -1,0 +1,14 @@
+
+EXCLUDE_PATTERNS = */Test/*.h \
+                   */LibHttpTest*.h \
+                   */moc* \
+                   */build/* \
+                   */binaries/*
+OUTPUT_DIRECTORY = docs
+GENERATE_HTML    = yes
+GENERATE_LATEX   = no
+INPUT            = .
+RECURSIVE        = YES
+MACRO_EXPANSION  = YES
+INCLUDE_PATH     = .
+PROJECT_NAME     = Lib HTTP

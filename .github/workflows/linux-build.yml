@@ -29,7 +29,7 @@ jobs:
         run: sudo add-apt-repository ppa:mhier/libboost-latest && sudo apt-get update
 
       - name: Install Dependencies
-        run: sudo apt install libboost1.74-dev libssl-dev qt5-qmake libstdc++-10-dev clang-9 libgtest-dev
+        run: sudo apt install libboost1.74-dev libssl-dev qt5-qmake libstdc++-10-dev clang-9 libgtest-dev valgrind
 
       - name: Clang Version
         run: clang++ --version
@@ -60,3 +60,10 @@ jobs:
         shell: bash
         run: make -j8
 
+      - name: Run Tests on Debug with Valgrind
+        shell: bash
+        run: valgrind --child-silent-after-fork=yes --smc-check=stack --tool=memcheck --gen-suppressions=all --track-origins=yes --leak-check=full --num-callers=25 --error-exitcode=1 'binaries/linux/clang/x64/debug/Test'
+
+      - name: Run Tests on Release with Valgrind
+        shell: bash
+        run: valgrind --child-silent-after-fork=yes --smc-check=stack --tool=memcheck --gen-suppressions=all --track-origins=yes --leak-check=full --num-callers=25 --error-exitcode=1 'binaries/linux/clang/x64/release/Test'

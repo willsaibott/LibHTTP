@@ -7,7 +7,17 @@ CONFIG += console c++17
 CONFIG -= app_bundle
 CONFIG += thread
 CONFIG -= qt
+
 QMAKE_CXXFLAGS += -std=c++17
+
+# --coverage option is synonym for: -fprofile-arcs -ftest-coverage -lgcov
+
+CONFIG(debug) {
+  QMAKE_CXXFLAGS += --coverage
+  QMAKE_LFLAGS += --coverage
+  QMAKE_PRE_LINK = rm -f build/$$DESTINATION_PATH/.obj/*gcda
+  !build_pass:message(cleaning previous: rm -f "$$OBJECTS_DIR/*gcda")
+}
 
 HEADERS += \
   Routers/http_custom_router.h \
@@ -41,4 +51,5 @@ LIBS += -lcrypto -lssl -lboost_regex
 LIBS += -L$$DESTDIR/ -lLibHttp
 
 PRE_TARGETDEPS += $$DESTDIR/libLibHttp.a
+
 message(Target dependencies: $${DESTDIR})
