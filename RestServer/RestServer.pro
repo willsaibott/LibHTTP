@@ -13,7 +13,7 @@ LIBS += -pthread
 LIBS += -lcrypto -lssl -lboost_regex
 
 #Using libstdc++ gnu 8:
-INCLUDEPATH += /usr/include/c++/8
+#INCLUDEPATH += /usr/include/c++/8
 INCLUDEPATH += $$PWD/../
 message("Path: ["$${INCLUDEPATH}"]")
 
@@ -33,3 +33,11 @@ MOC_DIR     = $$PWD/../build/$$DESTINATION_PATH/.moc
 RCC_DIR     = $$PWD/../build/$$DESTINATION_PATH/.qrc
 UI_DIR      = $$PWD/../build/$$DESTINATION_PATH/.ui
 message(App output dir: $${DESTDIR})
+
+INCLUDEPATH += $$PWD/../LibHttp
+DEPENDPATH += $$PWD/../LibHttp
+PRE_TARGETDEPS += $$DESTDIR/libLibHttp.a
+
+LIBS += -L$$DESTDIR/ -lLibHttp
+
+message(Target dependencies: $${DESTDIR})

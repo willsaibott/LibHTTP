@@ -24,39 +24,46 @@ jobs:
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
-      
+
       - name: Add Boost
-        run: sudo add-apt-repository ppa:mhier/libboost-latest && sudo apt-get update 
-      
+        run: sudo add-apt-repository ppa:mhier/libboost-latest && sudo apt-get update
+
       - name: Install Dependencies
-        run: sudo apt install libboost1.74-dev libssl-dev qt5-qmake libstdc++-8-dev clang-9
+        run: sudo apt install libboost1.74-dev libssl-dev qt5-qmake libstdc++-10-dev clang-9 libgtest-dev valgrind
 
       - name: Clang Version
         run: clang++ --version
-        
+
       # Runs a set of commands using the runners shell
-     
+
       - name: QMake project Debug
         shell: bash
         run: qmake -qt=qt5 libhttp.pro -spec linux-clang CONFIG+=qml_debug CONFIG+=qtquickcompiler CONFIG+=force_debug_info CONFIG+=separate_debug_info CONFIG+=debug && /usr/bin/make qmake_all
-        
-      - name: Make clean 
+
+      - name: Make clean
         shell: bash
-        run: make clean -j8   
-     
+        run: make clean -j8
+
       - name: Make Debug
         shell: bash
-        run: make -j8 
+        run: make -j8
 
       - name: QMake project Release
         shell: bash
         run: qmake -qt=qt5 libhttp.pro -spec linux-clang CONFIG+=qtquickcompiler && /usr/bin/make qmake_all
-        
-      - name: Make clean 
+
+      - name: Make clean
         shell: bash
-        run: make clean -j8    
+        run: make clean -j8
 
       - name: Make Release
         shell: bash
         run: make -j8
 
+      - name: Run Tests on Debug with Valgrind
+        shell: bash
+        run: valgrind --child-silent-after-fork=yes --smc-check=stack --tool=memcheck --gen-suppressions=all --track-origins=yes --leak-check=full --num-callers=25 --error-exitcode=1 'binaries/linux/clang/x64/debug/Test'
+
+      - name: Run Tests on Release with Valgrind
+        shell: bash
+        run: valgrind --child-silent-after-fork=yes --smc-check=stack --tool=memcheck --gen-suppressions=all --track-origins=yes --leak-check=full --num-callers=25 --error-exitcode=1 'binaries/linux/clang/x64/release/Test'
