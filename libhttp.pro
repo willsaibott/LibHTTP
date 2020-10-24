@@ -1,12 +1,13 @@
 TEMPLATE = subdirs
 
 SUBDIRS += \
-  RestServer \
   LibHttp \
+  RestServer \
+  Test
 
 !build_pass:message(LibHTTP project dir: $${PWD})
 
-INCLUDEPATH += /usr/include/c++/8
+#INCLUDEPATH += /usr/include/c++/8
 unix:!macx: LIBS += -lstdc++
 
 CONFIG += c++17 -Wall

@@ -1,31 +1,21 @@
-TEMPLATE = app
-CONFIG += console c++17 -Wall
-CONFIG -= app_bundle
-CONFIG -= qt
-QMAKE_CXXFLAGS += -std=c++17
-
-SOURCES += \
-  RestServer.cpp \
-  http_custom_router.cpp
-
-LIBS += -lstdc++fs
-LIBS += -pthread
-LIBS += -lcrypto -lssl -lboost_regex
-
-#Using libstdc++ gnu 8:
-#INCLUDEPATH += /usr/include/c++/8
-INCLUDEPATH += $$PWD/../
-message("Path: ["$${INCLUDEPATH}"]")
-
-HEADERS += \
-  http_custom_router.h
-
-DISTFILES += \
-  ../websocket/echo_client.html \
-  ../websocket/echo_client_ssl.html
-
+include(gtest_dependency.pri)
 include(../qmake-target-platform.pri)
 include(../qmake-destination-path.pri)
+
+TEMPLATE = app
+CONFIG += console
+CONFIG -= app_bundle
+CONFIG += thread
+CONFIG -= qt
+
+HEADERS += \
+        tst_httpservertest.h
+
+SOURCES += \
+        main.cpp
+
+INCLUDEPATH += $$PWD/../
+message("Path: ["$${INCLUDEPATH}"]")
 
 DESTDIR     = $$PWD/../binaries/$$DESTINATION_PATH
 OBJECTS_DIR = $$PWD/../build/$$DESTINATION_PATH/.obj
@@ -37,6 +27,9 @@ message(App output dir: $${DESTDIR})
 INCLUDEPATH += $$PWD/../LibHttp
 DEPENDPATH += $$PWD/../LibHttp
 
+LIBS += -lstdc++fs
+LIBS += -pthread
+LIBS += -lcrypto -lssl -lboost_regex
 LIBS += -L$$DESTDIR/ -lLibHttp
 
 PRE_TARGETDEPS += $$DESTDIR/libLibHttp.a
