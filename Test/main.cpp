@@ -1,4 +1,4 @@
-#include "tst_httpservertest.h"
+#include "http_server_test.h"
 
 #include <gtest/gtest.h>
 

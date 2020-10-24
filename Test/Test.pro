@@ -9,7 +9,7 @@ CONFIG += thread
 CONFIG -= qt
 
 HEADERS += \
-        tst_httpservertest.h
+  http_server_test.h
 
 SOURCES += \
         main.cpp
