@@ -339,3 +339,5 @@ Makefile
 /external/apr_crypto_openssl-1.dll
 /external/libcrypto-1_1-x64.dll
 /external/libcurl.dll
+/coverage/coverage/
+/docs/html/
