@@ -1,7 +1,7 @@
 #include "http_custom_router.h"
 
-http_custom_router2::
-http_custom_router2() {
+http_custom_router::
+http_custom_router() {
 
   get("/", [](const auto& root,
               const auto& request,

@@ -19,7 +19,7 @@ TEST_F(HttpServerTest, HttpServerShouldListenNewConnections) {
   ASSERT_FALSE(HttpServerTest::assert_port_is_in_use(endpoint))
       << "Port In use Before Instantiating Server";
 
-  http::http_server<http_custom_router2>
+  http::http_server<http_custom_router>
   http_server{ interface_address,
                 endpoint.port(),
                 std::filesystem::current_path() };

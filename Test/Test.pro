@@ -12,12 +12,6 @@ QMAKE_CXXFLAGS += -std=c++17
 
 # --coverage option is synonym for: -fprofile-arcs -ftest-coverage -lgcov
 
-CONFIG(debug) {
-  QMAKE_CXXFLAGS += --coverage
-  QMAKE_LFLAGS += --coverage
-  QMAKE_PRE_LINK = rm -f build/$$DESTINATION_PATH/.obj/*gcda
-  !build_pass:message(cleaning previous: rm -f "$$OBJECTS_DIR/*gcda")
-}
 
 HEADERS += \
   Routers/http_custom_router.h \
@@ -36,11 +30,18 @@ INCLUDEPATH += $$PWD/../
 message("Path: ["$${INCLUDEPATH}"]")
 
 DESTDIR     = $$PWD/../binaries/$$DESTINATION_PATH
-OBJECTS_DIR = $$PWD/../build/$$DESTINATION_PATH/.obj
-MOC_DIR     = $$PWD/../build/$$DESTINATION_PATH/.moc
-RCC_DIR     = $$PWD/../build/$$DESTINATION_PATH/.qrc
-UI_DIR      = $$PWD/../build/$$DESTINATION_PATH/.ui
+OBJECTS_DIR = $$PWD/../build/$$DESTINATION_PATH/TEST/.obj
+MOC_DIR     = $$PWD/../build/$$DESTINATION_PATH/TEST/.moc
+RCC_DIR     = $$PWD/../build/$$DESTINATION_PATH/TEST/.qrc
+UI_DIR      = $$PWD/../build/$$DESTINATION_PATH/TEST/.ui
 message(App output dir: $${DESTDIR})
+
+CONFIG(debug) {
+  QMAKE_CXXFLAGS += --coverage
+  QMAKE_LFLAGS += --coverage
+  QMAKE_PRE_LINK = rm -f $$OBJECTS_DIR/*gcda
+  !build_pass:message(cleaning previous: rm -f "$$OBJECTS_DIR/*gcda")
+}
 
 INCLUDEPATH += $$PWD/../LibHttp
 DEPENDPATH += $$PWD/../LibHttp
