@@ -5,9 +5,8 @@
 #-------------------------------------------------
 
 QT       -= core gui
-TARGET = LibHttp
+TARGET   = LibHttp
 TEMPLATE = lib
-INCLUDEPATH += /usr/include/c++/8
 DEFINES += LIBHTTP_LIBRARY
 
 CONFIG += c++17 -Wall

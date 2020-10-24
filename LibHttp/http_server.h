@@ -338,7 +338,6 @@ namespace http {
       }
     }
 
-
     // handlers:
 
     std::vector<handler_t>  _on_delete_handlers;

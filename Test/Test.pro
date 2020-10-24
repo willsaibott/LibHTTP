@@ -3,15 +3,23 @@ include(../qmake-target-platform.pri)
 include(../qmake-destination-path.pri)
 
 TEMPLATE = app
-CONFIG += console
+CONFIG += console c++17
 CONFIG -= app_bundle
 CONFIG += thread
 CONFIG -= qt
+QMAKE_CXXFLAGS += -std=c++17
 
 HEADERS += \
+  Routers/http_custom_router.h \
+  Suites/http_server_test.h \
+  Suites/port_binding_test.h \
+  consts.h \
   http_server_test.h
 
 SOURCES += \
+        Routers/http_custom_router.cpp \
+        Suites/http_server_test.cpp \
+        Suites/port_binding_test.cpp \
         main.cpp
 
 INCLUDEPATH += $$PWD/../
