@@ -51,3 +51,6 @@ MOC_DIR     = $$PWD/../build/$$DESTINATION_PATH/.moc
 RCC_DIR     = $$PWD/../build/$$DESTINATION_PATH/.qrc
 UI_DIR      = $$PWD/../build/$$DESTINATION_PATH/.ui
 message(lib output dir: $${DESTDIR})
+
+DISTFILES += \
+  ../.github/workflows/linux-build.yml
