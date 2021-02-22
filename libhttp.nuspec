@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
+    <metadata>
+        <id>Lib.Http</id>
+        <version>0.0.0.10</version>
+        <description>Header-only Library for HTTP/HTPPS servers based on ExpressJS</description>
+        <tags>native http boost beast</tags>
+        <authors>Bordignon Guilherme</authors>
+        <icon>images/icon.png</icon>
+        <projectUrl>https://github.com/willsaibott/LibHTTP</projectUrl>
+        <repository type="git" url="https://github.com/willsaibott/LibHTTP.git" branch="master" commit="a838017123b13282e9224a5a96e67cded948ca78"/>
+        <dependencies>
+            <group targetFramework="native0.0" />
+        </dependencies>
+
+    </metadata>
+     
+    <files>
+        <file src="LibHttp\*.h"          target="lib\native"     />
+        <!-- <file src=".\*.cpp"               target="native\lib"     /> -->
+        <file src="docs\*"               target="docs\"    />
+        <file src="images\icon.png"      target="images\"    />
+        <file src="lib.http.targets"      target="build\"    />
+    </files>
+</package>

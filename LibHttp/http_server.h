@@ -150,6 +150,37 @@ namespace http {
                                               IResponseSender& )>;
     using handler_t = std::pair<boost::regex, middleware_t>;
 
+    bool url_decode(const std::string& encoded, std::string& decoded) {
+        decoded.clear();
+        decoded.reserve(encoded.size());
+        for (std::size_t ii = 0; ii < encoded.size(); ++ii) {
+            if (encoded[ii] == '%') {
+                if (ii + 3 <= encoded.size()) {
+                    std::istringstream iss(encoded.substr(ii + 1, 2));
+                    int value = 0;
+                    if (iss >> std::hex >> value) {
+                        decoded += static_cast<char>(value);
+                        ii += 2;
+                    }
+                    else {
+                        // Invalid hex char sequence. Valid values: %00-%FF
+                        return false;
+                    }
+                }
+                else {
+                    // Unexpected termination. After '%', is expected two chars forming a hexadecimal number
+                    return false;
+                }
+            }
+            else if (encoded[ii] == '+') {
+                decoded += ' ';
+            }
+            else {
+                decoded += encoded[ii];
+            }
+        }
+        return true;
+    }
     public:
 
     inline void
@@ -304,18 +335,22 @@ namespace http {
                      const http_request_t&         request,
                      IResponseSender&              sender)
     {
-      std::string target{ request.target().data(), request.target().size() };
+      std::string target_encoded{ request.target().data(), request.target().size() };
+      std::string target;
 
-      if (target.empty()) {
-        target += "/";
+      if (target_encoded.empty()) {
+        target = "/";
+      }
+      else if (!url_decode(target_encoded, target)) {
+        return sender.async_send(bad_request(request, "Unable to decode URL"));
       }
 
       if (handlers.empty()) {
-        sender.async_send(not_implemented(request));
+        return sender.async_send(not_implemented(request));
       }
       else if (target.find("..") != std::string::npos) {
         const std::string reason{ std::string{ "Illegal path: " }.append(target) };
-        sender.async_send(bad_request(request, reason));
+        return sender.async_send(bad_request(request, reason));
       }
       else {
         bool route_found{ false };
@@ -333,7 +368,7 @@ namespace http {
         }
 
         if (!route_found) {
-          sender.async_send(not_found(request));
+          return sender.async_send(not_found(request));
         }
       }
     }
@@ -933,4 +968,3 @@ namespace http {
   using https_server =
       http_server<Router, http_listener<https_session<http_request_handler<Router>>>>;
 }
-

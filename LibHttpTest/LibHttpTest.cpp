@@ -232,6 +232,22 @@ namespace LibHttpTest
       Assert::IsFalse(port_in_use(server_port), L"Server didn't leave port 18080", LINE_INFO());
     }
 
+    TEST_METHOD(TestTargetUrlDecoded) {
+        const short server_port = 18080;
+        http::http_server<http_custom_router>
+            http_server{ interface_address, server_port, std::filesystem::current_path() };
+        http_server.start(1, false);
+
+        auto response = do_http_request_to(interface_address,
+                                           std::to_string(server_port),
+                                           "/alice/wonderland?filter={\"name\"=\"bob\"}");
+
+        std::string actual = boost::beast::buffers_to_string(response.body().data());
+        std::string expected{ "{\"bob\":\"hello world\"}" };
+
+        Assert::AreEqual(expected, actual);
+    }
+
     TEST_METHOD(TestWebSocketServerBind) {
       const short server_port = 18090;
       Assert::IsFalse(port_in_use(server_port), L"Port In use Before Instantiating Server", LINE_INFO());
